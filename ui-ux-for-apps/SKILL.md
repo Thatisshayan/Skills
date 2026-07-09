@@ -29,16 +29,27 @@ Also activate when they ask for premium app UI quality and explicitly want to av
 
 ---
 
-## Layer 0: Discovery (must be brief but explicit)
+## Layer 0: Discovery (brief but explicit)
 Before designing or coding, confirm:
 - What the app does and who uses it.
-- **Primary job-to-be-done** by screen.
+- Primary job-to-be-done by screen.
 - Main actions on each screen: primary vs secondary.
-- Personality/feeling: 2-3 adjectives tied to the product context.
+- Personality/feeling: 2-3 adjectives tied to product context.
 - Any explicit reference/showroom mood, palette fondness, or anti-patterns.
 - Whether content/assets are real or placeholders.
 
 Output a short **design direction summary**, saved in-repo as `IDEAS.md` or `DESIGN.md`. Use this as the source of truth for later decisions.
+
+### Editor vs Runtime
+- If the app includes a runtime-facing UI/editor, capture:
+  - Canvas/list/grid structure and affordances
+  - Primary manipulation models: selection, drag, resize, split, preview
+  - Contextual chrome vs persistent chrome preference
+  - Feedback model: inline validation, panel, modal, status rail
+
+### Internal Tool vs Product UI
+- Internal tools: prioritize scanability, density, consistency, and clear status signaling.
+- Product UI: prioritize clarity, onboarding cues, delight, and brand expression.
 
 ---
 
@@ -48,6 +59,12 @@ App UI is for task completion, not passive browsing.
 - Define the primary action and one secondary action per screen where practical.
 - Prefer minimal, intentional layout density over decorative sections.
 - Keep known patterns for navigation, settings, forms, tables, status areas, and empty/error/loading states.
+
+### App Surface Types
+- Dashboard: prioritizes scan, status, and drill-down
+- Editor/Studio: prioritizes canvas, tools, preview, and properties
+- Admin Panel: prioritizes list actions, auditability, and safety
+- Settings: prioritizes grouping, hierarchy, and confirmation
 
 ---
 
