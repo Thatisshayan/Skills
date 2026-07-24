@@ -1,0 +1,16 @@
+# --- Repo Governance additions (merged into .gitignore by apply script) ---
+.env
+.env.*
+!.env.example
+*.p8
+*.p12
+*_credential*
+*credential*
+node_modules/
+dist/
+build/
+.next/
+.turbo/
+.vs/
+desktop.ini
+audits/private/
