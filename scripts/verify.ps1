@@ -15,17 +15,20 @@ if (Get-Command gitleaks -ErrorAction SilentlyContinue) {
   gitleaks detect --no-banner --redact
   if ($LASTEXITCODE -ne 0) { Err "secret-scan" "gitleaks found secrets" }
 } else {
-  # (a) filename-based: private key / credential files must not be committed
+  # (a) filename-based: private key / credential files must not be committed.
+  #     Exclude dependency / generated dirs (node_modules, .venv, _repo_clone,
+  #     dist, build, .cache, coverage) — library files there are not first-party.
+  $excludeDirs = '[\\/](node_modules|\.git|audits[\\/]private|\.venv|_repo_clone|dist|build|\.cache|coverage)[\\/]'
   $badFiles = Get-ChildItem -Path $RepoRoot -Recurse -File -Include *.p8,*.p12,*credential*,*.pem,*.key `
     -ErrorAction SilentlyContinue |
-    Where-Object { $_.FullName -notmatch '[\\/]node_modules[\\/]|[\\/]\.git[\\/]|[\\/]audits[\\/]private[\\/]' }
+    Where-Object { $_.FullName -notmatch $excludeDirs }
   if ($badFiles) { Err "secret-scan" "secret files present: $($badFiles.FullName -join ', ')" }
-  # (b) content-based: code/config only, require an assigned value (not prose mentions)
-  #     Exclude *.env.example / *.env.sample (template files, no real secrets).
+  # (b) content-based: first-party code/config only, require an assigned value.
+  #     Exclude dependency / generated dirs + *.env.example / *.env.sample templates.
   $hits = Get-ChildItem -Path $RepoRoot -Recurse -File `
-    -Include *.json,*.env*,*.ts,*.js,*.py,*.yml,*.yaml,*.toml,*.sh `
+    -Include *.json,*.env,*.ts,*.js,*.py,*.yml,*.yaml,*.toml,*.sh `
     -ErrorAction SilentlyContinue |
-    Where-Object { $_.FullName -notmatch '[\\/]node_modules[\\/]|[\\/]\.git[\\/]|[\\/]audits[\\/]private[\\/]' } |
+    Where-Object { $_.FullName -notmatch $excludeDirs } |
     Where-Object { $_.Name -notmatch '\.env\.(example|sample)$' } |
     Where-Object { Select-String -Path $_.FullName -Pattern '(API_KEY|SECRET|PRIVATE_KEY|TOKEN|PASSWORD)\s*[=:]\s*["'']?[A-Za-z0-9/+_-]{8,}' -Quiet }
   if ($hits) { Err "secret-scan" "possible hardcoded secrets in: $($hits.FullName -join ', ')" }

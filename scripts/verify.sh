@@ -16,16 +16,21 @@ echo "== secret-scan =="
 if command -v gitleaks >/dev/null 2>&1; then
   gitleaks detect --no-banner --redact || error "secret-scan" "gitleaks found secrets"
 else
-  # (a) filename-based: private key / credential files must not be committed
+  # (a) filename-based: private key / credential files must not be committed.
+  #     Exclude dependency / generated dirs (.venv, node_modules, dist, build,
+  #     _repo_clone, .cache, coverage) — library files there are not first-party.
   bad_files=$(find . -type f \( -name '*.p8' -o -name '*.p12' -o -name '*credential*' \
     -o -name '*.pem' -o -name '*.key' \) \
-    -not -path './node_modules/*' -not -path './.git/*' -not -path './audits/private/*' 2>/dev/null || true)
+    -not -path '*/node_modules/*' -not -path '*/.git/*' -not -path '*/audits/private/*' \
+    -not -path '*/.venv/*' -not -path '*/_repo_clone/*' -not -path '*/dist/*' \
+    -not -path '*/build/*' -not -path '*/.cache/*' -not -path '*/coverage/*' 2>/dev/null || true)
   if [ -n "$bad_files" ]; then error "secret-scan" "secret files present: $bad_files"; fi
-  # (b) content-based: only scan code/config, and require an ASSIGNED VALUE
-  #     (not prose mentions of the word in docs like REPO_RULES.md).
-  #     Exclude *.env.example / *.env.sample (template files, no real secrets).
+  # (b) content-based: only scan first-party code/config, require an ASSIGNED VALUE.
+  #     Exclude dependency / generated dirs so library files don't false-positive.
   hits=$(grep -rIlE "(API_KEY|SECRET|PRIVATE_KEY|TOKEN|PASSWORD)[[:space:]]*[=:][[:space:]]*[\"']?[A-Za-z0-9/+_-]{8,}" \
     --exclude-dir=node_modules --exclude-dir=.git --exclude-dir=audits/private \
+    --exclude-dir=.venv --exclude-dir=_repo_clone --exclude-dir=dist --exclude-dir=build \
+    --exclude-dir=.cache --exclude-dir=coverage \
     --include='*.json' --include='*.env' --include='*.ts' --include='*.js' --include='*.py' \
     --include='*.yml' --include='*.yaml' --include='*.toml' --include='*.sh' . 2>/dev/null || true)
   if [ -n "$hits" ]; then error "secret-scan" "possible hardcoded secrets in: $hits"; fi
