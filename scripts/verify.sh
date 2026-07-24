@@ -24,10 +24,9 @@ else
   # (b) content-based: only scan code/config, and require an ASSIGNED VALUE
   #     (not prose mentions of the word in docs like REPO_RULES.md).
   #     Exclude *.env.example / *.env.sample (template files, no real secrets).
-  hits=$(grep -rIlE '(API_KEY|SECRET|PRIVATE_KEY|TOKEN|PASSWORD)\s*[=:]\s*["'\''']?[A-Za-z0-9/+_-]{8,}' \
+  hits=$(grep -rIlE "(API_KEY|SECRET|PRIVATE_KEY|TOKEN|PASSWORD)[[:space:]]*[=:][[:space:]]*[\"']?[A-Za-z0-9/+_-]{8,}" \
     --exclude-dir=node_modules --exclude-dir=.git --exclude-dir=audits/private \
-    --exclude='*.env.example' --exclude='*.env.sample' \
-    --include='*.json' --include='*.env*' --include='*.ts' --include='*.js' --include='*.py' \
+    --include='*.json' --include='*.env' --include='*.ts' --include='*.js' --include='*.py' \
     --include='*.yml' --include='*.yaml' --include='*.toml' --include='*.sh' . 2>/dev/null || true)
   if [ -n "$hits" ]; then error "secret-scan" "possible hardcoded secrets in: $hits"; fi
 fi
